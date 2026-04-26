@@ -1,0 +1,30 @@
+{% extends 'bank_app/base.html' %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-4">
+    <h1 class="card-title" style="font-size: 2rem; margin: 0;">Dashboard</h1>
+    <a href="{% url 'client_create' %}" class="btn btn-primary">+ New Client</a>
+</div>
+
+<div class="grid grid-cols-3">
+    <div class="card">
+        <h3 class="form-label">Total Clients</h3>
+        <p style="font-size: 2.5rem; font-weight: 700; color: var(--primary);">{{ clients_count }}</p>
+    </div>
+    <div class="card">
+        <h3 class="form-label">Active Accounts</h3>
+        <p style="font-size: 2.5rem; font-weight: 700; color: var(--secondary);">{{ accounts_count }}</p>
+    </div>
+    <div class="card">
+        <h3 class="form-label">Total Credits Granted</h3>
+        <p style="font-size: 2.5rem; font-weight: 700; color: var(--dark-light);">{{ credits_count }}</p>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <h2 class="card-title">Quick Actions</h2>
+    <div class="flex gap-4">
+        <a href="{% url 'client_list' %}" class="btn btn-outline">View All Clients</a>
+    </div>
+</div>
+{% endblock %}
