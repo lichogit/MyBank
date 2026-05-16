@@ -7,6 +7,12 @@ from .models import Client, Account, Credit, Installment, CreditType
 from .forms import ClientForm, CreditForm
 from . import services
 
+def custom_404(request, exception):
+    return render(request, '404.html', status=404)
+
+def custom_500(request):
+    return render(request, '500.html', status=500)
+
 def dashboard(request):
     clients_count = Client.objects.count()
     accounts_count = Account.objects.count()

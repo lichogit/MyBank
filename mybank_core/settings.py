@@ -48,6 +48,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'bank_app.middleware.ExceptionHandlerMiddleware',
 ]
 
 ROOT_URLCONF = 'mybank_core.urls'
