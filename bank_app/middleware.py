@@ -11,9 +11,9 @@ class ExceptionHandlerMiddleware:
         return self.get_response(request)
 
     def process_exception(self, request, exception):
-        # Log the exception for debugging
+       
         logger.error(f"Unhandled exception: {str(exception)}", exc_info=True)
         
-        # Render our custom 500 error page
+    
         context = {'error': str(exception)}
         return render(request, '500.html', context, status=500)

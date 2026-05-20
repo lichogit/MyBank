@@ -1,4 +1,4 @@
-{% extends 'bank_app/base.html' %}
+{% extends 'index.html' %}
 
 {% block content %}
 <div class="flex justify-between items-center mb-4">
@@ -7,49 +7,51 @@
 </div>
 
 <div class="card">
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Type</th>
-                <th>Name / Company</th>
-                <th>ID (EGN/EIK)</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for client in clients %}
-            <tr>
-                <td>
-                    {% if client.client_type == 'INDIVIDUAL' %}
-                        <span class="badge badge-primary">Individual</span>
-                    {% else %}
-                        <span class="badge badge-warning">Corporate</span>
-                    {% endif %}
-                </td>
-                <td>
-                    {% if client.client_type == 'INDIVIDUAL' %}
-                        {{ client.first_name }} {{ client.last_name }}
-                    {% else %}
-                        {{ client.company_name }}
-                    {% endif %}
-                </td>
-                <td>
-                    {% if client.client_type == 'INDIVIDUAL' %}
-                        {{ client.personal_id }}
-                    {% else %}
-                        {{ client.company_id }}
-                    {% endif %}
-                </td>
-                <td>
-                    <a href="{% url 'client_detail' client.pk %}" class="btn btn-outline" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Manage</a>
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="4" style="text-align: center; color: var(--gray);">No clients found. Add your first client to get started.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="table-container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Name / Company</th>
+                    <th>ID (EGN/EIK)</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for client in clients %}
+                <tr>
+                    <td>
+                        {% if client.client_type == 'INDIVIDUAL' %}
+                            <span class="badge badge-primary">Individual</span>
+                        {% else %}
+                            <span class="badge badge-warning">Corporate</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if client.client_type == 'INDIVIDUAL' %}
+                            {{ client.first_name }} {{ client.last_name }}
+                        {% else %}
+                            {{ client.company_name }}
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if client.client_type == 'INDIVIDUAL' %}
+                            {{ client.personal_id }}
+                        {% else %}
+                            {{ client.company_id }}
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'client_detail' client.pk %}" class="btn btn-outline" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Manage</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" style="text-align: center; color: var(--gray);">No clients found. Add your first client to get started.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
 {% endblock %}

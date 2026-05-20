@@ -66,32 +66,52 @@ def account_deposit(request, account_id):
         try:
             amount = Decimal(amount)
             account = get_object_or_404(Account, pk=account_id)
+            if account.status != 'ACTIVE':
+                raise ValidationError("Cannot deposit to a closed account.")
             account.balance += amount
             account.save()
             messages.success(request, f'Deposited {amount} successfully.')
             return redirect('client_detail', pk=account.client.id)
         except Exception as e:
-            messages.error(request, f'Error depositing: {e}')
+            messages.error(request, f'Error depositing: {e.message if hasattr(e, "message") else str(e)}')
+    return redirect('dashboard')
+
+def account_close(request, account_id):
+    if request.method == 'POST':
+        account = get_object_or_404(Account, pk=account_id)
+        try:
+            services.close_account(account.id)
+            messages.success(request, f'Account {account.iban} has been closed.')
+            return redirect('client_detail', pk=account.client.id)
+        except ValidationError as e:
+            messages.error(request, e.message if hasattr(e, "message") else str(e))
+            return redirect('client_detail', pk=account.client.id)
     return redirect('dashboard')
 
 def credit_create(request, client_id):
     client = get_object_or_404(Client, pk=client_id)
+    active_accounts = client.accounts.filter(status='ACTIVE')
+    if not active_accounts.exists():
+        messages.error(request, 'The client must have at least one active bank account to receive a credit.')
+        return redirect('client_detail', pk=client.id)
+
     if request.method == 'POST':
-        form = CreditForm(request.POST)
+        form = CreditForm(request.POST, client=client)
         if form.is_valid():
             try:
                 services.grant_credit(
                     client_id=client.id,
                     credit_type_id=form.cleaned_data['credit_type'].id,
                     amount=form.cleaned_data['amount'],
-                    period_months=form.cleaned_data['period_months']
+                    period_months=form.cleaned_data['period_months'],
+                    account_id=form.cleaned_data['account'].id
                 )
                 messages.success(request, 'Credit granted and repayment plan generated.')
                 return redirect('client_detail', pk=client.id)
             except ValidationError as e:
-                messages.error(request, str(e.message))
+                messages.error(request, e.message if hasattr(e, "message") else str(e))
     else:
-        form = CreditForm()
+        form = CreditForm(client=client)
     return render(request, 'bank_app/credit_form.html', {'form': form, 'client': client})
 
 def credit_detail(request, pk):
@@ -102,6 +122,17 @@ def credit_detail(request, pk):
         'installments': installments
     })
 
+def credit_pay_all(request, pk):
+    if request.method == 'POST':
+        credit = get_object_or_404(Credit, pk=pk)
+        try:
+            services.pay_all_installments(credit.id)
+            messages.success(request, 'All remaining installments paid successfully.')
+        except ValidationError as e:
+            messages.error(request, e.message if hasattr(e, "message") else str(e))
+        return redirect('credit_detail', pk=credit.id)
+    return redirect('dashboard')
+
 def installment_pay(request, pk):
     if request.method == 'POST':
         installment = get_object_or_404(Installment, pk=pk)
@@ -109,6 +140,6 @@ def installment_pay(request, pk):
             services.pay_installment(installment.id)
             messages.success(request, 'Installment paid successfully.')
         except ValidationError as e:
-            messages.error(request, str(e.message))
+            messages.error(request, e.message if hasattr(e, "message") else str(e))
         return redirect('credit_detail', pk=installment.credit.id)
     return redirect('dashboard')

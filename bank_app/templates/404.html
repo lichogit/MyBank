@@ -1,10 +1,11 @@
-{% extends 'bank_app/base.html' %}
+{% extends 'index.html' %}
 
 {% block content %}
 <div class="card" style="text-align: center; padding: 4rem 2rem;">
     <h1 style="font-size: 4rem; color: var(--primary); margin-bottom: 1rem;">404</h1>
     <h2 style="font-size: 1.5rem; color: var(--dark); margin-bottom: 2rem;">Page Not Found</h2>
-    <p style="color: var(--gray); margin-bottom: 2rem;">The page you are looking for doesn't exist or has been moved.</p>
+    <p style="color: var(--gray); margin-bottom: 2rem;">The page you are looking for doesn't exist or has been moved.
+    </p>
     <a href="{% url 'dashboard' %}" class="btn btn-primary">Return to Dashboard</a>
 </div>
 {% endblock %}

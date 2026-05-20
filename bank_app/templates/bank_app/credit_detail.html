@@ -1,4 +1,4 @@
-{% extends 'bank_app/base.html' %}
+{% extends 'index.html' %}
 
 {% block content %}
 <div class="flex justify-between items-center mb-4">
@@ -6,65 +6,117 @@
     <a href="{% url 'client_detail' credit.client.id %}" class="btn btn-outline">Back to Client</a>
 </div>
 
-<div class="grid grid-cols-4 mb-4">
-    <div class="card">
-        <h3 class="form-label">Principal Amount</h3>
-        <p style="font-size: 1.5rem; font-weight: 700; color: var(--dark);">{{ credit.amount }} BGN</p>
+<div class="grid grid-cols-2 mb-4">
+    <!-- Loan Overview -->
+    <div class="card" style="margin-bottom: 0;">
+        <h2 class="card-title" style="margin-bottom: 1rem;">Loan Overview</h2>
+        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+            <div class="flex justify-between" style="border-bottom: 1px dashed var(--border); padding-bottom: 0.5rem;">
+                <span class="form-label" style="margin: 0;">Principal Amount:</span>
+                <span style="font-weight: 700; color: var(--dark);">{{ credit.amount }} EUR</span>
+            </div>
+            <div class="flex justify-between" style="border-bottom: 1px dashed var(--border); padding-bottom: 0.5rem;">
+                <span class="form-label" style="margin: 0;">Interest Rate:</span>
+                <span style="font-weight: 700; color: var(--dark);">{{ credit.credit_type.interest_rate }}% / year</span>
+            </div>
+            <div class="flex justify-between" style="border-bottom: 1px dashed var(--border); padding-bottom: 0.5rem;">
+                <span class="form-label" style="margin: 0;">Total Period:</span>
+                <span style="font-weight: 700; color: var(--dark);">{{ credit.period_months }} months</span>
+            </div>
+            <div class="flex justify-between" style="padding-bottom: 0.25rem;">
+                <span class="form-label" style="margin: 0;">Status:</span>
+                <span class="badge {% if credit.status == 'ACTIVE' %}badge-primary{% else %}badge-success{% endif %}">{{ credit.status }}</span>
+            </div>
+        </div>
     </div>
-    <div class="card">
-        <h3 class="form-label">Interest Rate</h3>
-        <p style="font-size: 1.5rem; font-weight: 700; color: var(--dark);">{{ credit.credit_type.interest_rate }}% / year</p>
-    </div>
-    <div class="card">
-        <h3 class="form-label">Total Period</h3>
-        <p style="font-size: 1.5rem; font-weight: 700; color: var(--dark);">{{ credit.period_months }} months</p>
-    </div>
-    <div class="card">
-        <h3 class="form-label">Status</h3>
-        <p style="font-size: 1.5rem; font-weight: 700; color: var(--primary);">{{ credit.status }}</p>
+
+    <!-- Repayment Account Details -->
+    <div class="card" style="margin-bottom: 0;">
+        <h2 class="card-title" style="margin-bottom: 1rem;">Repayment Account Details</h2>
+        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+            <div class="flex justify-between" style="border-bottom: 1px dashed var(--border); padding-bottom: 0.5rem;">
+                <span class="form-label" style="margin: 0;">Linked Account:</span>
+                <span style="font-family: monospace; font-weight: 700; color: var(--dark);">{{ credit.repayment_account.iban }}</span>
+            </div>
+            <div class="flex justify-between" style="border-bottom: 1px dashed var(--border); padding-bottom: 0.5rem;">
+                <span class="form-label" style="margin: 0;">Available Balance:</span>
+                <span style="font-weight: 700; color: var(--primary);">{{ credit.repayment_account.balance }} EUR</span>
+            </div>
+            <div class="flex justify-between" style="border-bottom: 1px dashed var(--border); padding-bottom: 0.5rem;">
+                <span class="form-label" style="margin: 0;">Remaining Unpaid:</span>
+                <span style="font-weight: 700; color: var(--danger);">{{ credit.remaining_amount }} EUR</span>
+            </div>
+            
+            {% if credit.status == 'ACTIVE' %}
+                {% if credit.repayment_account.balance < credit.remaining_amount %}
+                <div class="alert alert-error" style="margin: 0; padding: 0.5rem 0.75rem; font-size: 0.85rem; border-radius: var(--radius-md);">
+                    Warning: Insufficient account balance to pay all installments!
+                </div>
+                {% else %}
+                <div class="alert alert-success" style="margin: 0; padding: 0.5rem 0.75rem; font-size: 0.85rem; border-radius: var(--radius-md);">
+                    Sufficient funds available to close this credit.
+                </div>
+                {% endif %}
+            {% endif %}
+        </div>
     </div>
 </div>
 
 <div class="card">
-    <h2 class="card-title">Annuity Repayment Plan</h2>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Month</th>
-                <th>Installment Amount</th>
-                <th>Principal Part</th>
-                <th>Interest Part</th>
-                <th>Remaining Balance</th>
-                <th>Status</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for inst in installments %}
-            <tr {% if inst.is_paid %}style="background-color: var(--light);"{% endif %}>
-                <td><strong>{{ inst.month_number }}</strong></td>
-                <td>{{ inst.installment_amount }} BGN</td>
-                <td style="color: var(--secondary);">{{ inst.principal_part }} BGN</td>
-                <td style="color: var(--danger);">{{ inst.interest_part }} BGN</td>
-                <td>{{ inst.remaining_balance }} BGN</td>
-                <td>
-                    {% if inst.is_paid %}
-                        <span class="badge badge-success">Paid</span>
-                    {% else %}
-                        <span class="badge badge-warning">Pending</span>
-                    {% endif %}
-                </td>
-                <td>
-                    {% if not inst.is_paid %}
-                        <form action="{% url 'installment_pay' inst.id %}" method="post">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-primary" style="padding: 0.25rem 0.5rem;">Pay Now</button>
-                        </form>
-                    {% endif %}
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="flex justify-between items-center mb-4">
+        <h2 class="card-title" style="margin: 0;">Annuity Repayment Plan</h2>
+        {% if credit.status == 'ACTIVE' %}
+            <form action="{% url 'credit_pay_all' credit.id %}" method="post" 
+                  onsubmit="return confirm('Are you sure you want to pay all remaining installments ({{ credit.remaining_amount }} EUR)?');" 
+                  style="margin: 0;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success" 
+                        {% if credit.repayment_account.balance < credit.remaining_amount %}disabled style="opacity: 0.65; cursor: not-allowed;" title="Insufficient funds in linked account"{% endif %}>
+                    Pay All Remaining
+                </button>
+            </form>
+        {% endif %}
+    </div>
+    <div class="table-container scrollable">
+        <table class="table compact">
+            <thead>
+                <tr>
+                    <th>Month</th>
+                    <th>Installment Amount</th>
+                    <th>Principal Part</th>
+                    <th>Interest Part</th>
+                    <th>Remaining Balance</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for inst in installments %}
+                <tr {% if inst.is_paid %}style="background-color: var(--light);"{% endif %}>
+                    <td><strong>{{ inst.month_number }}</strong></td>
+                    <td>{{ inst.installment_amount }} EUR</td>
+                    <td style="color: var(--secondary);">{{ inst.principal_part }} EUR</td>
+                    <td style="color: var(--danger);">{{ inst.interest_part }} EUR</td>
+                    <td>{{ inst.remaining_balance }} EUR</td>
+                    <td>
+                        {% if inst.is_paid %}
+                            <span class="badge badge-success">Paid</span>
+                        {% else %}
+                            <span class="badge badge-warning">Pending</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if not inst.is_paid %}
+                            <form action="{% url 'installment_pay' inst.id %}" method="post">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-primary" style="padding: 0.25rem 0.5rem;">Pay Now</button>
+                            </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
 {% endblock %}

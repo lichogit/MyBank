@@ -41,7 +41,7 @@ class CreditType(models.Model):
         ('MORTGAGE', 'Mortgage Credit'),
     )
     name = models.CharField(max_length=50, choices=CREDIT_NAMES, unique=True)
-    interest_rate = models.DecimalField(max_digits=5, decimal_places=2) # e.g. 5.50 for 5.5%
+    interest_rate = models.DecimalField(max_digits=5, decimal_places=2) 
     max_amount = models.DecimalField(max_digits=12, decimal_places=2)
     max_period_months = models.IntegerField()
 
@@ -54,6 +54,7 @@ class Credit(models.Model):
         ('PAID', 'Paid'),
     )
     client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='credits')
+    account = models.ForeignKey(Account, on_delete=models.PROTECT, null=True, blank=True, related_name='credits')
     credit_type = models.ForeignKey(CreditType, on_delete=models.PROTECT)
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     period_months = models.IntegerField()
@@ -62,6 +63,17 @@ class Credit(models.Model):
 
     def __str__(self):
         return f"Credit {self.id} - {self.client} ({self.amount})"
+
+    @property
+    def repayment_account(self):
+        if self.account:
+            return self.account
+        return self.client.accounts.filter(status='ACTIVE').first()
+
+    @property
+    def remaining_amount(self):
+        return sum(inst.installment_amount for inst in self.installments.filter(is_paid=False))
+
 
 class Installment(models.Model):
     credit = models.ForeignKey(Credit, on_delete=models.CASCADE, related_name='installments')

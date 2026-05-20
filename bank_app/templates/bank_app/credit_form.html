@@ -1,4 +1,4 @@
-{% extends 'bank_app/base.html' %}
+{% extends 'index.html' %}
 
 {% block content %}
 <div class="card" style="max-width: 600px; margin: 0 auto;">
@@ -12,13 +12,18 @@
         </div>
         
         <div class="form-group">
-            <label class="form-label">Amount (BGN)</label>
+            <label class="form-label">Amount (EUR)</label>
             {{ form.amount }}
         </div>
         
         <div class="form-group">
             <label class="form-label">Period (Months)</label>
             {{ form.period_months }}
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Disbursement & Repayment Account</label>
+            {{ form.account }}
         </div>
 
         <div class="mt-4">
