@@ -8,13 +8,28 @@ from django.core.exceptions import ValidationError
 
 def create_client(client_type, **kwargs):
     if client_type == 'INDIVIDUAL':
-        if not kwargs.get('first_name') or not kwargs.get('last_name') or not kwargs.get('personal_id'):
+        first_name = kwargs.get('first_name')
+        last_name = kwargs.get('last_name')
+        personal_id = kwargs.get('personal_id')
+        if not first_name or not last_name or not personal_id:
             raise ValidationError("Individual clients must have first_name, last_name, and personal_id")
+        if not personal_id.isdigit():
+            raise ValidationError("Personal ID must contain only numbers.")
+        if len(personal_id) != 10:
+            raise ValidationError(f"Personal ID must be exactly 10 numbers long. You entered {len(personal_id)}.")
     else:
-        if not kwargs.get('company_name') or not kwargs.get('company_id') or not kwargs.get('representative_name'):
+        company_name = kwargs.get('company_name')
+        company_id = kwargs.get('company_id')
+        representative_name = kwargs.get('representative_name')
+        if not company_name or not company_id or not representative_name:
             raise ValidationError("Corporate clients must have company_name, company_id, and representative_name")
+        if not company_id.isdigit():
+            raise ValidationError("Company ID must contain only numbers.")
+        if len(company_id) != 9:
+            raise ValidationError(f"Company ID must be exactly 9 numbers long. You entered {len(company_id)}.")
 
     return Client.objects.create(client_type=client_type, **kwargs)
+
 
 def generate_iban():
     # IBAN generator for BG
@@ -108,6 +123,7 @@ def grant_credit(client_id, credit_type_id, amount, period_months, account_id):
         
     return credit
 
+#pay single installment 
 @transaction.atomic
 def pay_installment(installment_id):
     installment = Installment.objects.select_for_update().get(id=installment_id)
@@ -142,6 +158,7 @@ def pay_installment(installment_id):
         
     return installment
 
+# Pay all at once
 @transaction.atomic
 def pay_all_installments(credit_id):
     credit = Credit.objects.get(id=credit_id)
@@ -179,6 +196,7 @@ def pay_all_installments(credit_id):
     credit.save()
     return credit
 
+#close account
 @transaction.atomic
 def close_account(account_id):
     account = Account.objects.select_for_update().get(id=account_id)

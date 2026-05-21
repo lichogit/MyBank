@@ -14,7 +14,7 @@ class Client(models.Model):
     
     # Corporate fields
     company_name = models.CharField(max_length=200, blank=True, null=True)
-    company_id = models.CharField(max_length=50, blank=True, null=True, unique=True) # EIK
+    company_id = models.CharField(max_length=20, blank=True, null=True, unique=True) # EIK
     representative_name = models.CharField(max_length=200, blank=True, null=True)
 
     def __str__(self):
@@ -86,4 +86,4 @@ class Installment(models.Model):
     paid_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
-        return f"Month {self.month_number} for Credit {self.credit.id}"
+        return f"Month {self.month_number} for Credit {self.credit.id}" 

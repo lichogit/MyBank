@@ -149,3 +149,61 @@ class ServicesTestCase(TestCase):
         with self.assertRaises(ValidationError):
             close_account(account.id)
 
+    def test_create_client_individual_invalid_length(self):
+        # Too short
+        with self.assertRaises(ValidationError) as ctx:
+            create_client('INDIVIDUAL', first_name='John', last_name='Doe', personal_id='12345')
+        self.assertIn("Personal ID must be exactly 10 numbers long. You entered 5.", str(ctx.exception))
+
+        # Too long
+        with self.assertRaises(ValidationError) as ctx:
+            create_client('INDIVIDUAL', first_name='John', last_name='Doe', personal_id='123456789012')
+        self.assertIn("Personal ID must be exactly 10 numbers long. You entered 12.", str(ctx.exception))
+        # Contains letters
+    def test_create_client_individual_invalid_chars(self):
+        with self.assertRaises(ValidationError) as ctx:
+            create_client('INDIVIDUAL', first_name='John', last_name='Doe', personal_id='123456789a')
+        self.assertIn("Personal ID must contain only numbers.", str(ctx.exception))
+
+    def test_create_client_corporate_invalid_length(self):
+        # Too short
+        with self.assertRaises(ValidationError) as ctx:
+            create_client('CORPORATE', company_name='Acme Corp', company_id='12345', representative_name='Jane')
+        self.assertIn("Company ID must be exactly 9 numbers long. You entered 5.", str(ctx.exception))
+
+        # Too long
+        with self.assertRaises(ValidationError) as ctx:
+            create_client('CORPORATE', company_name='Acme Corp', company_id='1234567890', representative_name='Jane')
+        self.assertIn("Company ID must be exactly 9 numbers long. You entered 10.", str(ctx.exception))
+        # Contains letters
+    def test_create_client_corporate_invalid_chars(self):
+        with self.assertRaises(ValidationError) as ctx:
+            create_client('CORPORATE', company_name='Acme Corp', company_id='12345678a', representative_name='Jane')
+        self.assertIn("Company ID must contain only numbers.", str(ctx.exception))
+
+    def test_client_form_validation(self):
+        from .forms import ClientForm
+
+        # Invalid Individual Form
+        form_data = {
+            'client_type': 'INDIVIDUAL',
+            'first_name': 'John',
+            'last_name': 'Doe',
+            'personal_id': '12345'
+        }
+        form = ClientForm(data=form_data)
+        self.assertFalse(form.is_valid())
+        self.assertIn('personal_id', form.errors)
+        self.assertEqual(form.errors['personal_id'][0], "Personal ID must be exactly 10 numbers long. You entered 5.")
+
+        # Valid Corporate Form
+        form_data = {
+            'client_type': 'CORPORATE',
+            'company_name': 'Acme Corp',
+            'company_id': '123456789',
+            'representative_name': 'Jane'
+        }
+        form = ClientForm(data=form_data)
+        self.assertTrue(form.is_valid())
+
+

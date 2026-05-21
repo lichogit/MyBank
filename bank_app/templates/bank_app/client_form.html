@@ -9,20 +9,41 @@
         <div class="form-group">
             <label class="form-label">Client Type</label>
             {{ form.client_type }}
+            {% if form.client_type.errors %}
+                <div class="alert alert-danger" style="margin-top: 0.5rem; padding: 0.5rem 1rem; font-size: 0.85rem; margin-bottom: 0;">
+                    {{ form.client_type.errors.0 }}
+                </div>
+            {% endif %}
         </div>
         
         <div id="individual-fields" style="display: none;">
             <div class="form-group">
                 <label class="form-label">First Name</label>
                 {{ form.first_name }}
+                {% if form.first_name.errors %}
+                    <div class="alert alert-danger" style="margin-top: 0.5rem; padding: 0.5rem 1rem; font-size: 0.85rem; margin-bottom: 0;">
+                        {{ form.first_name.errors.0 }}
+                    </div>
+                {% endif %}
             </div>
             <div class="form-group">
                 <label class="form-label">Last Name</label>
                 {{ form.last_name }}
+                {% if form.last_name.errors %}
+                    <div class="alert alert-danger" style="margin-top: 0.5rem; padding: 0.5rem 1rem; font-size: 0.85rem; margin-bottom: 0;">
+                        {{ form.last_name.errors.0 }}
+                    </div>
+                {% endif %}
             </div>
             <div class="form-group">
                 <label class="form-label">Personal ID (EGN)</label>
                 {{ form.personal_id }}
+                <div id="personal-id-warning" class="alert alert-warning" style="display: none; margin-top: 0.5rem; padding: 0.5rem 1rem; font-size: 0.85rem; margin-bottom: 0;"></div>
+                {% if form.personal_id.errors %}
+                    <div class="alert alert-danger" style="margin-top: 0.5rem; padding: 0.5rem 1rem; font-size: 0.85rem; margin-bottom: 0;">
+                        {{ form.personal_id.errors.0 }}
+                    </div>
+                {% endif %}
             </div>
         </div>
 
@@ -30,14 +51,30 @@
             <div class="form-group">
                 <label class="form-label">Company Name</label>
                 {{ form.company_name }}
+                {% if form.company_name.errors %}
+                    <div class="alert alert-danger" style="margin-top: 0.5rem; padding: 0.5rem 1rem; font-size: 0.85rem; margin-bottom: 0;">
+                        {{ form.company_name.errors.0 }}
+                    </div>
+                {% endif %}
             </div>
             <div class="form-group">
                 <label class="form-label">Company ID (EIK)</label>
                 {{ form.company_id }}
+                <div id="company-id-warning" class="alert alert-warning" style="display: none; margin-top: 0.5rem; padding: 0.5rem 1rem; font-size: 0.85rem; margin-bottom: 0;"></div>
+                {% if form.company_id.errors %}
+                    <div class="alert alert-danger" style="margin-top: 0.5rem; padding: 0.5rem 1rem; font-size: 0.85rem; margin-bottom: 0;">
+                        {{ form.company_id.errors.0 }}
+                    </div>
+                {% endif %}
             </div>
             <div class="form-group">
                 <label class="form-label">Representative Name</label>
                 {{ form.representative_name }}
+                {% if form.representative_name.errors %}
+                    <div class="alert alert-danger" style="margin-top: 0.5rem; padding: 0.5rem 1rem; font-size: 0.85rem; margin-bottom: 0;">
+                        {{ form.representative_name.errors.0 }}
+                    </div>
+                {% endif %}
             </div>
         </div>
 
@@ -45,6 +82,7 @@
             <button type="submit" class="btn btn-primary">Save Client</button>
             <a href="{% url 'client_list' %}" class="btn btn-outline" style="margin-left: 0.5rem;">Cancel</a>
         </div>
+
     </form>
 </div>
 
@@ -53,6 +91,10 @@
         const typeSelect = document.querySelector('select[name="client_type"]');
         const indFields = document.getElementById('individual-fields');
         const corpFields = document.getElementById('corporate-fields');
+        const personalIdInput = document.querySelector('input[name="personal_id"]');
+        const companyIdInput = document.querySelector('input[name="company_id"]');
+        const personalWarning = document.getElementById('personal-id-warning');
+        const companyWarning = document.getElementById('company-id-warning');
 
         // Add form-control class to all inputs/selects
         document.querySelectorAll('input, select').forEach(el => el.classList.add('form-control'));
@@ -70,7 +112,60 @@
             }
         }
 
+//make sure id is correctly input
+        function validatePersonalId() {
+            const val = personalIdInput.value;
+            if (!val) {
+                personalWarning.style.display = 'none';
+                return;
+            }
+            let warnings = [];
+            const nonDigits = val.replace(/[0-9]/g, '');
+            if (nonDigits.length > 0) {
+                warnings.push("Warning: Personal ID must contain only numbers. Remove any letters/non-numeric characters.");
+            }
+            if (val.length < 10) {
+                warnings.push(`Warning: Personal ID has too few letters. It must be exactly 10 numbers long. You entered ${val.length}.`);
+            } else if (val.length > 10) {
+                warnings.push(`Warning: Personal ID has too many letters. It must be exactly 10 numbers long. You entered ${val.length}.`);
+            }
+
+            if (warnings.length > 0) {
+                personalWarning.innerHTML = warnings.join('<br>');
+                personalWarning.style.display = 'block';
+            } else {
+                personalWarning.style.display = 'none';
+            }
+        }
+
+        function validateCompanyId() {
+            const val = companyIdInput.value;
+            if (!val) {
+                companyWarning.style.display = 'none';
+                return;
+            }
+            let warnings = [];
+            const nonDigits = val.replace(/[0-9]/g, '');
+            if (nonDigits.length > 0) {
+                warnings.push("Warning: Company ID must contain only numbers. Remove any letters/non-numeric characters.");
+            }
+            if (val.length < 9) {
+                warnings.push(`Warning: Company ID has too few letters. It must be exactly 9 numbers long. You entered ${val.length}.`);
+            } else if (val.length > 9) {
+                warnings.push(`Warning: Company ID has too many letters. It must be exactly 9 numbers long. You entered ${val.length}.`);
+            }
+
+            if (warnings.length > 0) {
+                companyWarning.innerHTML = warnings.join('<br>');
+                companyWarning.style.display = 'block';
+            } else {
+                companyWarning.style.display = 'none';
+            }
+        }
+
         typeSelect.addEventListener('change', toggleFields);
+        personalIdInput.addEventListener('input', validatePersonalId);
+        companyIdInput.addEventListener('input', validateCompanyId);
         toggleFields();
     });
 </script>
